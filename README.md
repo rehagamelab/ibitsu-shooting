@@ -1,5 +1,5 @@
 # いびつなシューティング / Distorted Shooting
-
+https://rehagamelab.github.io/ibitsu-shooting/
 ## 概要
 
 「いびつなシューティング」は、画面手前の左右2カ所に配置されたレーザーを使い、画面奥側に出現する黒丸ターゲットをできるだけ早く消すブラウザゲームです。
