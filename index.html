@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>いびつなシューティング</title>
+  <style>
+:root {
+  --bg: #f6f7fb;
+  --panel: rgba(255,255,255,0.96);
+  --text: #172033;
+  --muted: #667085;
+  --line: #d0d5dd;
+  --accent: #2563eb;
+  --shadow: 0 18px 50px rgba(16,24,40,0.18);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(37,99,235,0.13), transparent 35%),
+    linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+  padding: 22px;
+}
+.language-switch {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.94);
+  color: var(--text);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(16,24,40,0.12);
+}
+.wrapper {
+  min-height: calc(100vh - 44px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panel {
+  width: min(880px, 100%);
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: clamp(22px, 4vw, 44px);
+}
+h1 {
+  margin: 0 0 14px;
+  font-size: clamp(32px, 6vw, 60px);
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+}
+p, li {
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.8;
+}
+.lead { font-size: clamp(17px, 2.2vw, 21px); }
+.meta {
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.72);
+}
+.meta p { margin: 4px 0; font-size: 15px; color: var(--muted); }
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 9px 22px rgba(37,99,235,0.25);
+}
+.btn.secondary {
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.notice {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 18px;
+}
+@media (max-width: 560px) {
+  body { padding: 12px; padding-top: 62px; }
+  .wrapper { min-height: calc(100vh - 74px); }
+  .btn { width: 100%; }
+}
+  </style>
+</head>
+<body>
+  <button id="langToggle" class="language-switch" type="button" aria-label="Change language">English</button>
+  <main class="wrapper">
+    <div class="panel">
+      <h1 data-i18n="title">いびつなシューティング</h1>
+      <p class="lead" data-i18n="description">基本的なシューティングゲームで素早く反応するほど高得点になります。ルールが追加されていくので、レベルが上がるにつれて認知的な処理も得点に影響するようにしています。</p>
+
+      <div class="meta" aria-label="ゲーム情報" data-i18n-aria="gameInfo">
+        <p><strong data-i18n="creatorLabel">作成者：</strong>komon</p>
+        <p><strong data-i18n="gameIdLabel">ゲームID：</strong>RG_komon_2026_01</p>
+      </div>
+
+      <div class="btn-row">
+        <a class="btn" href="game.html" data-i18n="startGame">ゲームを始める</a>
+        <a class="btn secondary" href="policy.html" data-i18n="viewPolicy">Policyを見る</a>
+      </div>
+      <p class="notice" data-i18n="notice">スマホ・タブレットでは横向きでのプレイをおすすめします。PCでは F キーで左レーザー、J キーで右レーザーを発射します。</p>
+    </div>
+  </main>
+
+  <script>
+  (() => {
+    const I18N = {
+      ja: {
+        pageTitle: 'いびつなシューティング',
+        title: 'いびつなシューティング',
+        description: '基本的なシューティングゲームで素早く反応するほど高得点になります。ルールが追加されていくので、レベルが上がるにつれて認知的な処理も得点に影響するようにしています。',
+        creatorLabel: '作成者：',
+        gameIdLabel: 'ゲームID：',
+        startGame: 'ゲームを始める',
+        viewPolicy: 'Policyを見る',
+        notice: 'スマホ・タブレットでは横向きでのプレイをおすすめします。PCでは F キーで左レーザー、J キーで右レーザーを発射します。',
+        gameInfo: 'ゲーム情報',
+        toggle: 'English'
+      },
+      en: {
+        pageTitle: 'Distorted Shooting',
+        title: 'Distorted Shooting',
+        description: 'This is a basic shooting game where faster reactions lead to higher scores. As rules are added across levels, cognitive processing increasingly affects performance.',
+        creatorLabel: 'Creator: ',
+        gameIdLabel: 'Game ID: ',
+        startGame: 'Start Game',
+        viewPolicy: 'View Policy',
+        notice: 'Landscape orientation is recommended on smartphones and tablets. On PC, press F for the left laser and J for the right laser.',
+        gameInfo: 'Game information',
+        toggle: '日本語'
+      }
+    };
+
+    function getLang() {
+      const saved = localStorage.getItem('ibitsu_shooting_lang');
+      return saved === 'en' ? 'en' : 'ja';
+    }
+    function setLang(lang) {
+      localStorage.setItem('ibitsu_shooting_lang', lang);
+      document.documentElement.lang = lang;
+      document.title = I18N[lang].pageTitle;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = I18N[lang][key] || I18N.ja[key] || key;
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        const key = el.getAttribute('data-i18n-aria');
+        el.setAttribute('aria-label', I18N[lang][key] || I18N.ja[key] || key);
+      });
+      document.getElementById('langToggle').textContent = I18N[lang].toggle;
+      document.getElementById('langToggle').setAttribute('aria-label', lang === 'ja' ? 'Switch to English' : '日本語に切り替える');
+    }
+
+    document.getElementById('langToggle').addEventListener('click', () => {
+      setLang(getLang() === 'ja' ? 'en' : 'ja');
+    });
+    setLang(getLang());
+  })();
+  </script>
+</body>
+</html>

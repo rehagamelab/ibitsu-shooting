@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>いびつなシューティング</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: rgba(255, 255, 255, 0.94);
+      --text: #172033;
+      --muted: #667085;
+      --line: #d0d5dd;
+      --accent: #2563eb;
+      --danger: #d93025;
+      --blue: #1a73e8;
+      --black: #111827;
+      --shadow: 0 18px 50px rgba(16, 24, 40, 0.22);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%; height: 100%; margin: 0; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none; user-select: none;
+    }
+    #app {
+      position: fixed; inset: 0; display: flex; align-items: stretch; justify-content: stretch;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(37, 99, 235, 0.10), transparent 35%),
+        linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
+    }
+    canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+    .overlay {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 18px; pointer-events: none; background: rgba(15, 23, 42, 0.22); backdrop-filter: blur(3px);
+    }
+    .panel {
+      width: min(760px, 96vw); max-height: 94vh; overflow: auto; pointer-events: auto;
+      background: var(--panel); border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 24px; box-shadow: var(--shadow); padding: clamp(18px, 3vw, 34px);
+    }
+    .panel h1, .panel h2 { margin: 0 0 12px; line-height: 1.2; letter-spacing: 0.02em; }
+    .panel h1 { font-size: clamp(30px, 5vw, 56px); }
+    .panel h2 { font-size: clamp(24px, 4vw, 40px); }
+    .lead { font-size: clamp(16px, 2.1vw, 21px); line-height: 1.7; margin: 8px 0 18px; }
+    .small { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; align-items: center; }
+    button {
+      appearance: none; border: none; border-radius: 999px; padding: 13px 22px;
+      font-size: 16px; font-weight: 700; cursor: pointer; color: #fff; background: var(--accent);
+      box-shadow: 0 9px 22px rgba(37, 99, 235, 0.25);
+    }
+    button.secondary { color: var(--text); background: #ffffff; border: 1px solid var(--line); box-shadow: none; }
+    button:active { transform: translateY(1px); }
+    .language-switch {
+      position: fixed; top: 14px; right: 14px; z-index: 80;
+      min-height: 40px; padding: 8px 14px; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.94);
+      color: var(--text); font-weight: 800; cursor: pointer; box-shadow: 0 8px 22px rgba(16,24,40,0.12);
+    }
+    .home-link {
+      position: fixed; top: 14px; left: 14px; z-index: 80;
+      display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 14px;
+      border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,0.94);
+      color: var(--text); font-weight: 800; text-decoration: none; box-shadow: 0 8px 22px rgba(16,24,40,0.12);
+    }
+    .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+    .metric { padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .metric .label { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+    .metric .value { font-size: 24px; font-weight: 800; line-height: 1.2; }
+    .table-wrap { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #eaecf0; text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child, th:nth-child(4), td:nth-child(4) { text-align: left; }
+    th { position: sticky; top: 0; background: #f8fafc; z-index: 1; }
+    .hide { display: none !important; }
+    .portrait-warning {
+      display: none; position: fixed; left: 50%; top: 62px; transform: translateX(-50%); z-index: 70;
+      padding: 8px 14px; border-radius: 999px; background: rgba(17, 24, 39, 0.82);
+      color: #fff; font-size: 13px; pointer-events: none;
+    }
+    @media (orientation: portrait) and (max-width: 900px) { .portrait-warning { display: block; } }
+    @media (max-width: 640px) {
+      .result-grid { grid-template-columns: 1fr; }
+      .panel { border-radius: 18px; }
+      button { flex: 1 1 auto; }
+      .home-link, .language-switch { top: 8px; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"><canvas id="gameCanvas" aria-label="いびつなシューティング"></canvas></div>
+  <a id="homeLink" class="home-link" href="index.html">ホーム</a>
+  <button id="langToggle" class="language-switch" type="button" aria-label="Change language">English</button>
+  <div id="portraitWarning" class="portrait-warning">横向き画面での使用をおすすめします</div>
+  <div id="overlay" class="overlay"><div id="panel" class="panel"></div></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    const I18N = {
+      ja: {
+        pageTitle: 'いびつなシューティング',
+        toggle: 'English', home: 'ホーム',
+        portrait: '横向き画面での使用をおすすめします',
+        title: 'いびつなシューティング',
+        titleLead: '左右のレーザーを選んで、黒いターゲットをできるだけ早く消そう！',
+        titleHelp: 'PC：左レーザーは <strong>F</strong>、右レーザーは <strong>J</strong><br>スマホ・タブレット：画面下部の左／右レーザーをタッチ<br>開始後は3・2・1のカウントダウン後に始まります。ターゲットは各試行0.5〜1.2秒のランダム待機後に出現します。<br>赤レーザーは遅い、青レーザーは速い、黒レーザーは通常速度です。',
+        start: 'スタート', fullscreen: '全画面表示', startLevel: 'このレベルを開始',
+        levelTargetsInfo: '1レベル10試行です。ターゲット位置は -9, -7, -5, -3, -1, +1, +3, +5, +7, +9 が1回ずつランダムに出現します。',
+        countdownHelp: 'ターゲットが出たら発射してください',
+        hudInstruction: 'PC：左 F / 右 J　｜　スマホ：画面下部の左・右レーザーをタッチ',
+        level: 'Level', trial: '試行', leftLaser: '左レーザー', rightLaser: '右レーザー', leftF: '左 F', rightJ: '右 J',
+        levelResult: '結果', finalResult: '総合結果', nextLevel: '次のレベルへ', finalResultsButton: '総合結果へ',
+        downloadCsv: 'CSVをダウンロード', restart: '最初からやり直す', playAgain: 'もう一度プレイ',
+        pseNote: 'PSEは「右レーザーを選ぶ確率が50%になるターゲット位置」の簡易推定です。10試行のみのため参考値として扱ってください。',
+        rightUseRate: '右レーザー使用率', pseEstimate: 'PSE推定値', meanDisappear: '平均ターゲット消失時間', evaluation: '評価', meanReaction: '平均反応時間', optimalRate: '最適レーザー選択率',
+        excellent: '素晴らしい！', ok: 'まずまずOK！', effort: 'がんばれ！', poor: '残念', none: '-',
+        unable: '推定困難', biasedRight: '（右使いがち）', biasedLeft: '（左使いがち）', neutral: '（ほぼ中立）',
+        insufficient: '試行数が不足しています', tooBiased: '左右選択の偏りが大きいため', weakRelation: '位置と左右選択の関係が弱いため', outOfRange: '推定値が範囲外です', simpleEstimate: '10試行のみの簡易推定です',
+        tableTrial: '試行', tableTarget: 'ターゲット位置', tableColor: '左/右色', tableChoice: '選択', tableReaction: '反応', tableTravel: '移動', tableDisappear: '消失', tableDelay: '出現待機', tableOptimal: '最適',
+        tableLevel: 'レベル', tableRightRate: '右使用率', tablePse: 'PSE', tableMeanDisappear: '平均消失',
+        left: '左', right: '右', tie: '同着', yes: '○', no: '×', second: '秒',
+        colors: { black: '黒', red: '赤', blue: '青' },
+        levels: [
+          { title: 'Level 1：基本条件', message: '黒いレーザーでターゲットを早く消そう！', description: '左右とも黒レーザーです。ターゲット位置を見て、早く届く方を選びましょう。' },
+          { title: 'Level 2：赤レーザーは遅い', message: 'レーザーが赤くなるとビームが遅くなるよ！', description: '10試行中5試行で、左右どちらか一方が赤レーザーになります。赤は速度0.5倍です。' },
+          { title: 'Level 3：青レーザーは速い', message: 'レーザーが青くなるとビームが速くなるよ！', description: '10試行中5試行で、左右どちらか一方が青レーザーになります。青は速度2倍です。' },
+          { title: 'Level 4：赤は遅く、青は速い', message: '赤レーザーは遅く、青レーザーは速い！', description: '10試行中5試行で、左右どちらか一方が赤または青になります。' },
+          { title: 'Level 5：全試行で色がランダム', message: '赤レーザーは遅く、青レーザーは速い！', description: '10試行すべてで、左右のレーザーが黒・赤・青からランダムに決まります。ただし、左右とも赤、左右とも青は出現しません。' }
+        ]
+      },
+      en: {
+        pageTitle: 'Distorted Shooting',
+        toggle: '日本語', home: 'Home',
+        portrait: 'Landscape orientation is recommended',
+        title: 'Distorted Shooting',
+        titleLead: 'Choose the left or right laser and eliminate the black target as quickly as possible!',
+        titleHelp: 'PC: press <strong>F</strong> for the left laser and <strong>J</strong> for the right laser.<br>Smartphone/tablet: tap the left or right laser at the bottom of the screen.<br>After starting, the game begins after a 3-2-1 countdown. In each trial, the target appears after a random delay of 0.5 to 1.2 seconds.<br>Red lasers are slow, blue lasers are fast, and black lasers move at normal speed.',
+        start: 'Start', fullscreen: 'Fullscreen', startLevel: 'Start This Level',
+        levelTargetsInfo: 'Each level has 10 trials. Target positions -9, -7, -5, -3, -1, +1, +3, +5, +7, and +9 appear once each in random order.',
+        countdownHelp: 'Fire when the target appears',
+        hudInstruction: 'PC: Left F / Right J | Smartphone: tap the left or right laser at the bottom',
+        level: 'Level', trial: 'Trial', leftLaser: 'Left Laser', rightLaser: 'Right Laser', leftF: 'Left F', rightJ: 'Right J',
+        levelResult: 'Results', finalResult: 'Overall Results', nextLevel: 'Next Level', finalResultsButton: 'Overall Results',
+        downloadCsv: 'Download CSV', restart: 'Restart from Beginning', playAgain: 'Play Again',
+        pseNote: 'PSE is a simple estimate of the target position where the probability of choosing the right laser is 50%. Because each level has only 10 trials, treat it as a reference value.',
+        rightUseRate: 'Right Laser Use Rate', pseEstimate: 'Estimated PSE', meanDisappear: 'Mean Target Disappearance Time', evaluation: 'Evaluation', meanReaction: 'Mean Reaction Time', optimalRate: 'Optimal Laser Selection Rate',
+        excellent: 'Excellent!', ok: 'Good enough!', effort: 'Keep trying!', poor: 'Not good', none: '-',
+        unable: 'Unable to estimate', biasedRight: ' (tends to use right)', biasedLeft: ' (tends to use left)', neutral: ' (nearly neutral)',
+        insufficient: 'Not enough trials', tooBiased: 'Laser choices were too biased', weakRelation: 'Weak relationship between position and left/right choice', outOfRange: 'Estimated value is out of range', simpleEstimate: 'Simple estimate based on only 10 trials',
+        tableTrial: 'Trial', tableTarget: 'Target position', tableColor: 'Left/Right color', tableChoice: 'Choice', tableReaction: 'Reaction', tableTravel: 'Travel', tableDisappear: 'Disappear', tableDelay: 'Delay', tableOptimal: 'Optimal',
+        tableLevel: 'Level', tableRightRate: 'Right use', tablePse: 'PSE', tableMeanDisappear: 'Mean disappearance',
+        left: 'Left', right: 'Right', tie: 'Tie', yes: 'Yes', no: 'No', second: 's',
+        colors: { black: 'Black', red: 'Red', blue: 'Blue' },
+        levels: [
+          { title: 'Level 1: Basic Condition', message: 'Eliminate the target quickly with black lasers!', description: 'Both lasers are black. Choose the laser that reaches the target faster based on the target position.' },
+          { title: 'Level 2: Red Lasers Are Slow', message: 'When a laser turns red, the beam becomes slower!', description: 'In 5 of the 10 trials, either the left or right laser becomes red. Red means 0.5× speed.' },
+          { title: 'Level 3: Blue Lasers Are Fast', message: 'When a laser turns blue, the beam becomes faster!', description: 'In 5 of the 10 trials, either the left or right laser becomes blue. Blue means 2× speed.' },
+          { title: 'Level 4: Red Is Slow, Blue Is Fast', message: 'Red lasers are slow, and blue lasers are fast!', description: 'In 5 of the 10 trials, either the left or right laser becomes red or blue.' },
+          { title: 'Level 5: Random Colors in Every Trial', message: 'Red lasers are slow, and blue lasers are fast!', description: 'In all 10 trials, the left and right lasers are randomly assigned black, red, or blue. However, both red and both blue combinations do not appear.' }
+        ]
+      }
+    };
+
+    let currentLang = (localStorage.getItem('ibitsu_shooting_lang') === 'en') ? 'en' : 'ja';
+    function t(key) { return I18N[currentLang][key] ?? I18N.ja[key] ?? key; }
+    function levelText(idx, field) { return I18N[currentLang].levels[idx][field] || I18N.ja.levels[idx][field]; }
+    function colorLabel(colorName) { return I18N[currentLang].colors[colorName] || colorName; }
+    function setLanguage(lang) {
+      currentLang = lang === 'en' ? 'en' : 'ja';
+      localStorage.setItem('ibitsu_shooting_lang', currentLang);
+      document.documentElement.lang = currentLang;
+      document.title = t('pageTitle');
+      document.getElementById('langToggle').textContent = t('toggle');
+      document.getElementById('homeLink').textContent = t('home');
+      document.getElementById('portraitWarning').textContent = t('portrait');
+      document.getElementById('langToggle').setAttribute('aria-label', currentLang === 'ja' ? 'Switch to English' : '日本語に切り替える');
+      rerenderOverlayForLanguage();
+      draw();
+    }
+    document.getElementById('langToggle').addEventListener('click', () => setLanguage(currentLang === 'ja' ? 'en' : 'ja'));
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const panel = document.getElementById('panel');
+
+    const TARGET_POSITIONS = [-9, -7, -5, -3, -1, 1, 3, 5, 7, 9];
+    const LASER_X = { Left: -1, Right: 1 };
+    const COLOR_RULES = {
+      black: { css: '#111827', multiplier: 1.0 },
+      red:   { css: '#d93025', multiplier: 0.5 },
+      blue:  { css: '#1a73e8', multiplier: 2.0 }
+    };
+    const LEVELS = [
+      { level: 1, makeColors: makeLevel1Colors },
+      { level: 2, makeColors: makeLevel2Colors },
+      { level: 3, makeColors: makeLevel3Colors },
+      { level: 4, makeColors: makeLevel4Colors },
+      { level: 5, makeColors: makeLevel5Colors }
+    ];
+
+    const state = {
+      screen: 'title', currentLevelIndex: 0, trialIndex: 0, trials: [], allResults: [],
+      currentTrial: null, targetShownAt: 0, awaitingInput: false, targetVisible: false,
+      shot: null, nextTimer: null, countdownValue: null, waitingForTarget: false,
+      interTrialDelayMs: 0, targetDelayStartAt: 0
+    };
+
+    function resizeCanvas() {
+      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+      const cssW = window.innerWidth;
+      const cssH = window.innerHeight;
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+    function cssWidth() { return canvas.clientWidth || window.innerWidth; }
+    function cssHeight() { return canvas.clientHeight || window.innerHeight; }
+    function logicalToPixelX(x) { return cssWidth() * (x + 10) / 20; }
+    function laserY() { return cssHeight() * 0.82; }
+    function targetY() { return cssHeight() * 0.22; }
+    function pointForLaser(side) { return { x: logicalToPixelX(LASER_X[side]), y: laserY() }; }
+    function pointForTarget(targetX) { return { x: logicalToPixelX(targetX), y: targetY() }; }
+    function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+    function baseSpeedPxPerSec() {
+      const d0 = Math.max(1, dist(pointForLaser('Left'), pointForTarget(-1)));
+      return d0 / 0.4;
+    }
+    function arrivalTimeSec(side, targetX, colorName) {
+      const speed = baseSpeedPxPerSec() * COLOR_RULES[colorName].multiplier;
+      return dist(pointForLaser(side), pointForTarget(targetX)) / speed;
+    }
+    function optimalLaserForTrial(trial) {
+      const left = arrivalTimeSec('Left', trial.targetX, trial.leftColor);
+      const right = arrivalTimeSec('Right', trial.targetX, trial.rightColor);
+      if (Math.abs(left - right) < 0.0005) return 'Tie';
+      return left < right ? 'Left' : 'Right';
+    }
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function sample(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function makeLevel1Colors() { return Array.from({ length: 10 }, () => ({ leftColor: 'black', rightColor: 'black' })); }
+    function makeLevel2Colors() {
+      const colors = makeLevel1Colors();
+      shuffle([...Array(10).keys()]).slice(0, 5).forEach(i => {
+        if (Math.random() < 0.5) colors[i].leftColor = 'red'; else colors[i].rightColor = 'red';
+      });
+      return colors;
+    }
+    function makeLevel3Colors() {
+      const colors = makeLevel1Colors();
+      shuffle([...Array(10).keys()]).slice(0, 5).forEach(i => {
+        if (Math.random() < 0.5) colors[i].leftColor = 'blue'; else colors[i].rightColor = 'blue';
+      });
+      return colors;
+    }
+    function makeLevel4Colors() {
+      const colors = makeLevel1Colors();
+      shuffle([...Array(10).keys()]).slice(0, 5).forEach(i => {
+        const changedColor = Math.random() < 0.5 ? 'red' : 'blue';
+        if (Math.random() < 0.5) colors[i].leftColor = changedColor; else colors[i].rightColor = changedColor;
+      });
+      return colors;
+    }
+    function makeLevel5Colors() {
+      const choices = ['black', 'red', 'blue'];
+      return Array.from({ length: 10 }, () => {
+        let leftColor, rightColor;
+        do { leftColor = sample(choices); rightColor = sample(choices); }
+        while ((leftColor === 'red' && rightColor === 'red') || (leftColor === 'blue' && rightColor === 'blue'));
+        return { leftColor, rightColor };
+      });
+    }
+    function buildTrials(levelConfig) {
+      const targets = shuffle(TARGET_POSITIONS);
+      const colors = levelConfig.makeColors();
+      return targets.map((targetX, idx) => ({ level: levelConfig.level, trial: idx + 1, targetX, leftColor: colors[idx].leftColor, rightColor: colors[idx].rightColor }));
+    }
+    function showOverlay(html) { panel.innerHTML = html; overlay.classList.remove('hide'); }
+    function hideOverlay() { overlay.classList.add('hide'); }
+
+    function rerenderOverlayForLanguage() {
+      if (state.screen === 'title') showTitle();
+      else if (state.screen === 'levelIntro') showLevelIntro();
+      else if (state.screen === 'levelResult') showLevelResult();
+      else if (state.screen === 'finalResult') showFinalResult();
+    }
+
+    function showTitle() {
+      state.screen = 'title';
+      showOverlay(`
+        <h1>${escapeHtml(t('title'))}</h1>
+        <p class="lead">${escapeHtml(t('titleLead'))}</p>
+        <p class="small">${t('titleHelp')}</p>
+        <div class="btn-row">
+          <button id="startGameBtn">${escapeHtml(t('start'))}</button>
+          <button id="fullscreenBtn" class="secondary">${escapeHtml(t('fullscreen'))}</button>
+        </div>
+      `);
+      document.getElementById('startGameBtn').addEventListener('click', () => { state.currentLevelIndex = 0; state.allResults = []; showLevelIntro(); });
+      document.getElementById('fullscreenBtn').addEventListener('click', requestFullscreenSafe);
+      draw();
+    }
+    function requestFullscreenSafe() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    }
+    function showLevelIntro() {
+      clearPendingTimer();
+      const idx = state.currentLevelIndex;
+      state.screen = 'levelIntro';
+      showOverlay(`
+        <h2>${escapeHtml(levelText(idx, 'title'))}</h2>
+        <p class="lead"><strong>${escapeHtml(levelText(idx, 'message'))}</strong></p>
+        <p class="small">${escapeHtml(levelText(idx, 'description'))}</p>
+        <p class="small">${escapeHtml(t('levelTargetsInfo'))}</p>
+        <div class="btn-row"><button id="startLevelBtn">${escapeHtml(t('startLevel'))}</button></div>
+      `);
+      document.getElementById('startLevelBtn').addEventListener('click', startLevel);
+      draw();
+    }
+    function startLevel() {
+      clearPendingTimer();
+      const level = LEVELS[state.currentLevelIndex];
+      state.trials = buildTrials(level);
+      state.trialIndex = 0; state.currentTrial = null; state.shot = null; state.awaitingInput = false; state.targetVisible = false; state.waitingForTarget = false; state.screen = 'countdown';
+      hideOverlay(); startCountdown();
+    }
+    function startCountdown() {
+      clearPendingTimer();
+      state.countdownValue = 3; state.awaitingInput = false; state.targetVisible = false; state.waitingForTarget = false; state.shot = null; draw();
+      const tick = () => {
+        if (state.screen !== 'countdown') return;
+        if (state.countdownValue > 1) { state.countdownValue -= 1; draw(); state.nextTimer = window.setTimeout(tick, 1000); }
+        else { state.countdownValue = null; state.screen = 'playing'; scheduleTrialAppearance(); }
+      };
+      state.nextTimer = window.setTimeout(tick, 1000);
+    }
+    function randomTargetDelayMs() { return 500 + Math.random() * 700; }
+    function scheduleTrialAppearance() {
+      clearPendingTimer();
+      state.screen = 'playing'; state.currentTrial = state.trials[state.trialIndex]; state.targetVisible = false; state.awaitingInput = false; state.waitingForTarget = true; state.shot = null;
+      state.interTrialDelayMs = randomTargetDelayMs();
+      if (state.currentTrial) state.currentTrial.targetDelaySec = state.interTrialDelayMs / 1000;
+      draw(); state.nextTimer = window.setTimeout(loadTrial, state.interTrialDelayMs);
+    }
+    function loadTrial() { state.targetVisible = true; state.awaitingInput = true; state.waitingForTarget = false; state.shot = null; state.targetShownAt = performance.now(); draw(); }
+    function fireLaser(side) {
+      if (state.screen !== 'playing' || !state.awaitingInput || !state.currentTrial) return;
+      const now = performance.now(); state.awaitingInput = false;
+      const trial = state.currentTrial; const selectedColor = side === 'Left' ? trial.leftColor : trial.rightColor;
+      const travel = arrivalTimeSec(side, trial.targetX, selectedColor); const reaction = Math.max(0, (now - state.targetShownAt) / 1000);
+      state.shot = { side, color: selectedColor, startTime: now, durationMs: travel * 1000, reactionTime: reaction, travelTime: travel, completed: false };
+      draw();
+    }
+    function completeShot() {
+      if (!state.shot || state.shot.completed || !state.currentTrial) return;
+      state.shot.completed = true; state.targetVisible = false;
+      const trial = state.currentTrial; const shot = state.shot;
+      const leftArrival = arrivalTimeSec('Left', trial.targetX, trial.leftColor);
+      const rightArrival = arrivalTimeSec('Right', trial.targetX, trial.rightColor);
+      const optimal = optimalLaserForTrial(trial); const isOptimal = optimal === 'Tie' || optimal === shot.side;
+      const disappearance = shot.reactionTime + shot.travelTime;
+      state.allResults.push({
+        level: trial.level, trial: trial.trial, target_x: trial.targetX,
+        left_laser_color: trial.leftColor, right_laser_color: trial.rightColor,
+        left_speed_multiplier: COLOR_RULES[trial.leftColor].multiplier, right_speed_multiplier: COLOR_RULES[trial.rightColor].multiplier,
+        selected_laser: shot.side, reaction_time: shot.reactionTime, travel_time: shot.travelTime, disappearance_time: disappearance,
+        target_delay_sec: Number.isFinite(trial.targetDelaySec) ? trial.targetDelaySec : NaN,
+        left_arrival_time: leftArrival, right_arrival_time: rightArrival, optimal_laser: optimal, is_optimal: isOptimal
+      });
+      state.nextTimer = window.setTimeout(() => {
+        state.trialIndex += 1;
+        if (state.trialIndex >= state.trials.length) showLevelResult(); else scheduleTrialAppearance();
+      }, 0);
+    }
+    function clearPendingTimer() { if (state.nextTimer) { clearTimeout(state.nextTimer); state.nextTimer = null; } }
+    function resultsForCurrentLevel() { const levelNum = LEVELS[state.currentLevelIndex].level; return state.allResults.filter(r => r.level === levelNum); }
+    function summarize(results) {
+      const n = results.length;
+      const rightCount = results.filter(r => r.selected_laser === 'Right').length;
+      const optimalCount = results.filter(r => r.is_optimal).length;
+      const meanDisappear = n ? results.reduce((s, r) => s + r.disappearance_time, 0) / n : NaN;
+      const meanRt = n ? results.reduce((s, r) => s + r.reaction_time, 0) / n : NaN;
+      return { n, rightRate: n ? rightCount / n * 100 : NaN, optimalRate: n ? optimalCount / n * 100 : NaN, meanDisappear, meanRt, pse: estimatePSE(results), evalKey: evaluateTimeKey(meanDisappear) };
+    }
+    function evaluateTimeKey(sec) { if (!Number.isFinite(sec)) return 'none'; if (sec <= 0.8) return 'excellent'; if (sec <= 1.5) return 'ok'; if (sec <= 2.0) return 'effort'; return 'poor'; }
+    function estimatePSE(results) {
+      const rows = results.filter(r => Number.isFinite(r.target_x) && (r.selected_laser === 'Left' || r.selected_laser === 'Right')).map(r => ({ x: r.target_x, y: r.selected_laser === 'Right' ? 1 : 0 }));
+      if (rows.length < 4) return { value: NaN, textKey: 'unable', noteKey: 'insufficient' };
+      const ySum = rows.reduce((s, r) => s + r.y, 0);
+      if (ySum === 0 || ySum === rows.length) return { value: NaN, textKey: 'unable', noteKey: 'tooBiased' };
+      let a = 0, b = 0; const lambda = 0.05;
+      for (let iter = 0; iter < 40; iter++) {
+        let g0 = 0, g1 = 0, h00 = lambda, h01 = 0, h11 = lambda;
+        for (const r of rows) {
+          const z = clamp(a + b * r.x, -35, 35); const p = 1 / (1 + Math.exp(-z)); const w = Math.max(1e-6, p * (1 - p));
+          g0 += p - r.y; g1 += (p - r.y) * r.x; h00 += w; h01 += w * r.x; h11 += w * r.x * r.x;
+        }
+        g0 += lambda * a; g1 += lambda * b;
+        const det = h00 * h11 - h01 * h01; if (Math.abs(det) < 1e-9) break;
+        const da = ( h11 * g0 - h01 * g1) / det; const db = (-h01 * g0 + h00 * g1) / det;
+        a -= da; b -= db; if (Math.hypot(da, db) < 1e-6) break;
+      }
+      if (!Number.isFinite(b) || Math.abs(b) < 0.02) return { value: NaN, textKey: 'unable', noteKey: 'weakRelation' };
+      const pse = -a / b;
+      if (!Number.isFinite(pse) || Math.abs(pse) > 30) return { value: NaN, textKey: 'unable', noteKey: 'outOfRange' };
+      return { value: pse, noteKey: 'simpleEstimate' };
+    }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function showLevelResult() {
+      state.screen = 'levelResult'; state.awaitingInput = false; state.targetVisible = false; state.waitingForTarget = false; state.shot = null;
+      const level = LEVELS[state.currentLevelIndex]; const results = resultsForCurrentLevel(); const s = summarize(results); const isLast = state.currentLevelIndex >= LEVELS.length - 1;
+      showOverlay(`
+        <h2>${escapeHtml(t('level'))} ${level.level} ${escapeHtml(t('levelResult'))}</h2>
+        ${metricsHtml(s)}
+        <p class="small">${escapeHtml(t('pseNote'))}</p>
+        ${miniTableHtml(results)}
+        <div class="btn-row">
+          <button id="nextBtn">${escapeHtml(isLast ? t('finalResultsButton') : t('nextLevel'))}</button>
+          <button id="downloadCsvBtn" class="secondary">${escapeHtml(t('downloadCsv'))}</button>
+          <button id="restartBtn" class="secondary">${escapeHtml(t('restart'))}</button>
+        </div>
+      `);
+      document.getElementById('nextBtn').addEventListener('click', () => { if (isLast) showFinalResult(); else { state.currentLevelIndex += 1; showLevelIntro(); } });
+      document.getElementById('downloadCsvBtn').addEventListener('click', downloadCsv);
+      document.getElementById('restartBtn').addEventListener('click', showTitle);
+      draw();
+    }
+    function showFinalResult() {
+      state.screen = 'finalResult'; const s = summarize(state.allResults);
+      const levelRows = LEVELS.map(lv => {
+        const rows = state.allResults.filter(r => r.level === lv.level); const ss = summarize(rows);
+        return `<tr><td>${escapeHtml(t('level'))} ${lv.level}</td><td>${formatPercent(ss.rightRate)}</td><td>${formatPse(ss.pse)}</td><td>${formatSec(ss.meanDisappear)}</td><td>${escapeHtml(t(ss.evalKey))}</td><td>${formatPercent(ss.optimalRate)}</td></tr>`;
+      }).join('');
+      showOverlay(`
+        <h2>${escapeHtml(t('finalResult'))}</h2>
+        ${metricsHtml(s)}
+        <div class="table-wrap"><table><thead><tr><th>${escapeHtml(t('tableLevel'))}</th><th>${escapeHtml(t('tableRightRate'))}</th><th>${escapeHtml(t('tablePse'))}</th><th>${escapeHtml(t('tableMeanDisappear'))}</th><th>${escapeHtml(t('evaluation'))}</th><th>${escapeHtml(t('optimalRate'))}</th></tr></thead><tbody>${levelRows}</tbody></table></div>
+        <div class="btn-row"><button id="downloadCsvFinalBtn">${escapeHtml(t('downloadCsv'))}</button><button id="restartFinalBtn" class="secondary">${escapeHtml(t('playAgain'))}</button></div>
+      `);
+      document.getElementById('downloadCsvFinalBtn').addEventListener('click', downloadCsv);
+      document.getElementById('restartFinalBtn').addEventListener('click', showTitle);
+      draw();
+    }
+    function metricsHtml(s) {
+      return `<div class="result-grid">
+        <div class="metric"><div class="label">${escapeHtml(t('rightUseRate'))}</div><div class="value">${formatPercent(s.rightRate)}</div></div>
+        <div class="metric"><div class="label">${escapeHtml(t('pseEstimate'))}</div><div class="value">${formatPse(s.pse)}</div></div>
+        <div class="metric"><div class="label">${escapeHtml(t('meanDisappear'))}</div><div class="value">${formatSec(s.meanDisappear)}</div></div>
+        <div class="metric"><div class="label">${escapeHtml(t('evaluation'))}</div><div class="value">${escapeHtml(t(s.evalKey))}</div></div>
+        <div class="metric"><div class="label">${escapeHtml(t('meanReaction'))}</div><div class="value">${formatSec(s.meanRt)}</div></div>
+        <div class="metric"><div class="label">${escapeHtml(t('optimalRate'))}</div><div class="value">${formatPercent(s.optimalRate)}</div></div>
+      </div>`;
+    }
+    function miniTableHtml(results) {
+      const rows = results.map(r => `<tr>
+        <td>${r.trial}</td><td>${signed(r.target_x)}</td><td>${escapeHtml(colorLabel(r.left_laser_color))} / ${escapeHtml(colorLabel(r.right_laser_color))}</td>
+        <td>${r.selected_laser === 'Right' ? escapeHtml(t('right')) : escapeHtml(t('left'))}</td><td>${formatSec(r.reaction_time)}</td><td>${formatSec(r.travel_time)}</td><td>${formatSec(r.disappearance_time)}</td><td>${formatSec(r.target_delay_sec)}</td><td>${r.is_optimal ? escapeHtml(t('yes')) : escapeHtml(t('no'))}</td>
+      </tr>`).join('');
+      return `<div class="table-wrap"><table><thead><tr><th>${escapeHtml(t('tableTrial'))}</th><th>${escapeHtml(t('tableTarget'))}</th><th>${escapeHtml(t('tableColor'))}</th><th>${escapeHtml(t('tableChoice'))}</th><th>${escapeHtml(t('tableReaction'))}</th><th>${escapeHtml(t('tableTravel'))}</th><th>${escapeHtml(t('tableDisappear'))}</th><th>${escapeHtml(t('tableDelay'))}</th><th>${escapeHtml(t('tableOptimal'))}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+    function formatPercent(v) { return Number.isFinite(v) ? v.toFixed(1) + '%' : '-'; }
+    function formatSec(v) { return Number.isFinite(v) ? (currentLang === 'ja' ? v.toFixed(3) + t('second') : v.toFixed(3) + ' ' + t('second')) : '-'; }
+    function formatPse(pse) {
+      if (!pse || !Number.isFinite(pse.value)) return escapeHtml(t('unable'));
+      const valueText = (pse.value >= 0 ? '+' : '') + pse.value.toFixed(2); const eps = 0.0001;
+      if (pse.value < -eps) return valueText + escapeHtml(t('biasedRight'));
+      if (pse.value > eps) return valueText + escapeHtml(t('biasedLeft'));
+      return valueText + escapeHtml(t('neutral'));
+    }
+    function signed(v) { return v > 0 ? '+' + v : String(v); }
+    function escapeHtml(str) { return String(str).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
+    function csvColorName(code) { return currentLang === 'ja' ? colorLabel(code) : code; }
+    function downloadCsv() {
+      if (!state.allResults.length) return;
+      const headers = ['level','trial','target_x','left_laser_color','right_laser_color','left_speed_multiplier','right_speed_multiplier','selected_laser','reaction_time','travel_time','disappearance_time','target_delay_sec','left_arrival_time','right_arrival_time','optimal_laser','is_optimal'];
+      const lines = [headers.join(',')];
+      for (const r of state.allResults) {
+        const row = { ...r, left_laser_color: csvColorName(r.left_laser_color), right_laser_color: csvColorName(r.right_laser_color) };
+        lines.push(headers.map(h => csvCell(row[h])).join(','));
+      }
+      const csv = '\ufeff' + lines.join('\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); const ts = new Date().toISOString().replace(/[:.]/g, '-'); a.href = url; a.download = `ibitsu_shooting_results_${ts}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+    function csvCell(v) { if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(6); if (typeof v === 'boolean') return v ? 'true' : 'false'; const s = String(v ?? ''); if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"'; return s; }
+
+    function draw() {
+      const w = cssWidth(), h = cssHeight(); ctx.clearRect(0, 0, w, h); drawBackground(w, h);
+      if (state.screen === 'playing') { drawHud(w, h); drawPlayField(w, h); }
+      else if (state.screen === 'countdown') drawCountdownScreen(w, h);
+      else drawAttractScreen(w, h);
+    }
+    function drawBackground(w, h) {
+      const grad = ctx.createLinearGradient(0, 0, 0, h); grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.55, '#eff6ff'); grad.addColorStop(1, '#e0e7ff'); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+      ctx.save(); ctx.strokeStyle = 'rgba(37, 99, 235, 0.10)'; ctx.lineWidth = 1;
+      for (let x = 0; x <= w; x += Math.max(45, w / 12)) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (let y = 0; y <= h; y += Math.max(45, h / 8)) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      ctx.restore();
+    }
+    function drawAttractScreen(w, h) {
+      drawCoordinateAxis(w, h, false);
+      drawLaserBase(pointForLaser('Left').x, pointForLaser('Left').y, 'black', t('leftF'));
+      drawLaserBase(pointForLaser('Right').x, pointForLaser('Right').y, 'black', t('rightJ'));
+      drawTarget(pointForTarget(0).x, pointForTarget(0).y, Math.max(13, Math.min(w, h) * 0.025));
+    }
+    function drawCountdownScreen(w, h) {
+      drawCoordinateAxis(w, h, false);
+      drawLaserBase(pointForLaser('Left').x, pointForLaser('Left').y, 'black', t('leftF'));
+      drawLaserBase(pointForLaser('Right').x, pointForLaser('Right').y, 'black', t('rightJ'));
+      ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.88)'; const boxW = Math.min(420, w - 36), boxH = Math.min(230, h - 60), x = (w - boxW) / 2, y = (h - boxH) / 2; roundRect(ctx, x, y, boxW, boxH, 26); ctx.fill(); ctx.strokeStyle = 'rgba(208,213,221,0.95)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#172033'; ctx.font = `800 ${Math.max(78, Math.min(w, h) * 0.20)}px system-ui, -apple-system, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(state.countdownValue ?? ''), w / 2, h / 2 - 12);
+      ctx.font = '700 18px system-ui, -apple-system, sans-serif'; ctx.fillStyle = '#475467'; ctx.fillText(t('countdownHelp'), w / 2, h / 2 + boxH * 0.32); ctx.restore();
+    }
+    function drawHud(w, h) {
+      const level = LEVELS[state.currentLevelIndex]; const trialNum = state.trialIndex + 1;
+      ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.86)'; roundRect(ctx, 14, 56, Math.min(640, w - 28), 72, 16); ctx.fill(); ctx.strokeStyle = 'rgba(208,213,221,0.9)'; ctx.stroke();
+      ctx.fillStyle = '#172033'; ctx.font = '700 18px system-ui, -apple-system, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`${t('level')} ${level.level}　${t('trial')} ${trialNum} / 10`, 30, 82);
+      ctx.font = '14px system-ui, -apple-system, sans-serif'; ctx.fillStyle = '#475467'; ctx.fillText(t('hudInstruction'), 30, 106); ctx.restore();
+    }
+    function drawPlayField(w, h) {
+      drawCoordinateAxis(w, h, true); drawHitZones(w, h);
+      const trial = state.currentTrial; if (!trial) return;
+      if (state.waitingForTarget && !state.targetVisible && !state.shot) return;
+      const target = pointForTarget(trial.targetX);
+      if (state.targetVisible) drawTarget(target.x, target.y, Math.max(12, Math.min(w, h) * 0.023));
+      drawLaserBase(pointForLaser('Left').x, pointForLaser('Left').y, trial.leftColor, t('leftF'));
+      drawLaserBase(pointForLaser('Right').x, pointForLaser('Right').y, trial.rightColor, t('rightJ'));
+      if (state.shot) drawShot(state.shot, trial);
+    }
+    function drawCoordinateAxis(w, h, showLabels) {
+      const y = targetY(); ctx.save(); ctx.strokeStyle = 'rgba(71, 84, 103, 0.28)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(logicalToPixelX(-10), y); ctx.lineTo(logicalToPixelX(10), y); ctx.stroke();
+      for (const x of TARGET_POSITIONS) { const px = logicalToPixelX(x); ctx.beginPath(); ctx.moveTo(px, y - 7); ctx.lineTo(px, y + 7); ctx.stroke(); if (showLabels) { ctx.fillStyle = '#667085'; ctx.font = '12px system-ui, -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(signed(x), px, y - 14); } }
+      ctx.restore();
+    }
+    function drawHitZones(w, h) {
+      const top = h * 0.60; ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.26)'; ctx.fillRect(0, top, w / 2, h - top); ctx.fillRect(w / 2, top, w / 2, h - top); ctx.strokeStyle = 'rgba(71, 84, 103, 0.18)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(w / 2, top); ctx.lineTo(w / 2, h); ctx.stroke(); ctx.fillStyle = 'rgba(71, 84, 103, 0.55)'; ctx.font = '700 16px system-ui, -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(t('leftLaser'), w * 0.25, h - 22); ctx.fillText(t('rightLaser'), w * 0.75, h - 22); ctx.restore();
+    }
+    function drawTarget(x, y, radius) { ctx.save(); ctx.fillStyle = '#0b0f19'; ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = Math.max(2, radius * 0.18); ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.stroke(); ctx.restore(); }
+    function drawLaserBase(x, y, colorName, label) {
+      const color = COLOR_RULES[colorName].css; const r = Math.max(28, Math.min(cssWidth(), cssHeight()) * 0.055); ctx.save(); ctx.shadowColor = colorName === 'black' ? 'rgba(17,24,39,0.30)' : color + '55'; ctx.shadowBlur = 16; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, Math.PI, 0); ctx.lineTo(x + r * 0.78, y + r * 0.72); ctx.lineTo(x - r * 0.78, y + r * 0.72); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.font = `800 ${Math.max(14, r * 0.38)}px system-ui, -apple-system, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, x, y + r * 0.18); ctx.restore();
+    }
+    function drawShot(shot, trial) {
+      const start = pointForLaser(shot.side), end = pointForTarget(trial.targetX), now = performance.now(); const progress = clamp((now - shot.startTime) / Math.max(1, shot.durationMs), 0, 1); const x = start.x + (end.x - start.x) * progress, y = start.y + (end.y - start.y) * progress, color = COLOR_RULES[shot.color].css;
+      ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = Math.max(6, Math.min(cssWidth(), cssHeight()) * 0.012); ctx.lineCap = 'round'; ctx.shadowColor = color; ctx.shadowBlur = 18; ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(x, y); ctx.stroke(); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, Math.max(8, Math.min(cssWidth(), cssHeight()) * 0.018), 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      if (progress >= 1 && !shot.completed) completeShot();
+    }
+    function roundRect(context, x, y, w, h, r) { const radius = Math.min(r, w / 2, h / 2); context.beginPath(); context.moveTo(x + radius, y); context.arcTo(x + w, y, x + w, y + h, radius); context.arcTo(x + w, y + h, x, y + h, radius); context.arcTo(x, y + h, x, y, radius); context.arcTo(x, y, x + w, y, radius); context.closePath(); }
+    function onKeyDown(e) { if (e.repeat) return; const key = e.key.toLowerCase(); if (key === 'f') { e.preventDefault(); fireLaser('Left'); } else if (key === 'j') { e.preventDefault(); fireLaser('Right'); } }
+    function onPointerDown(e) { if (state.screen !== 'playing') return; const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; if (y < cssHeight() * 0.52) return; fireLaser(x < cssWidth() / 2 ? 'Left' : 'Right'); }
+    function gameLoop() { draw(); requestAnimationFrame(gameLoop); }
+
+    window.addEventListener('resize', resizeCanvas); window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 250)); window.addEventListener('keydown', onKeyDown); canvas.addEventListener('pointerdown', onPointerDown, { passive: true });
+    setLanguage(currentLang); resizeCanvas(); showTitle(); requestAnimationFrame(gameLoop);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+いびつなシューティング 利用条件
+Distorted Shooting Terms of Use
+
+Copyright (c) 2026 komon
+
+本ソフトウェアの著作権は、特に明記がない限り作者に帰属します。
+本ソフトウェアは、以下の条件に従う場合に限り、利用を許可します。
+
+Unless otherwise stated, the copyright of this software belongs to the author.
+Use of this software is permitted only under the following conditions.
+
+1. 対象ソフトウェア / Covered Software
+
+本利用条件は、ゲーム「いびつなシューティング」および、それに含まれるHTML、CSS、JavaScript、画像、文章、その他関連ファイルに適用されます。
+These terms apply to the game “Distorted Shooting” and the included HTML, CSS, JavaScript, images, text, and related files.
+
+ゲームタイトル / Title: いびつなシューティング / Distorted Shooting
+作成者 / Creator: komon
+ゲームID / Game ID: RG_komon_2026_01
+
+2. 目的 / Purpose
+
+本ソフトウェアは、研究、教育、および試作目的で公開されています。
+本ソフトウェアは、医療機器として設計、開発、認証、承認、届出されたものではありません。
+本ソフトウェアは、診断、治療、リハビリテーション効果の保証、臨床判断、医学的評価、その他医療上の意思決定を目的とするものではありません。
+
+This software is published for research, education, and prototype purposes.
+It is not designed, developed, certified, approved, or registered as a medical device.
+It is not intended for diagnosis, treatment, guaranteeing rehabilitation effects, clinical judgment, medical evaluation, or any medical decision-making.
+
+3. 利用許可 / Permission of Use
+
+個人、法人、教育機関、研究機関、医療機関、介護施設、その他団体を問わず、すべての方に本ソフトウェアの利用を許可します。
+Use of this software is permitted for all users, including individuals, companies, educational institutions, research institutions, medical institutions, care facilities, and other organizations.
+
+利用には、以下を含みます。
+Permitted use includes the following:
+
+・本ソフトウェアをブラウザ上で実行すること / Running this software in a web browser
+・教育、研究、研修、授業、演習、展示、体験活動、試作検討等に使用すること / Use in education, research, training, classes, exercises, exhibitions, experiential activities, and prototype evaluation
+・本ソフトウェアを複製し、保存すること / Copying and storing this software
+・本ソフトウェアを改変すること / Modifying this software
+・本ソフトウェアまたは改変版を、無償で共有、配布、公開すること / Sharing, distributing, or publishing this software or modified versions free of charge
+・本ソフトウェアを、医療、教育、介護、研究等の現場で補助的に使用すること / Auxiliary use in medical, educational, care, and research settings
+
+ただし、いずれの場合も、本利用条件を遵守する必要があります。
+In all cases, users must comply with these terms.
+
+4. 表示義務 / Attribution
+
+本ソフトウェアを再配布、公開、または改変して公開する場合は、可能な範囲で以下の情報を残してください。
+When redistributing, publishing, or publishing a modified version of this software, please keep the following information to the extent possible:
+
+・ゲームタイトル：いびつなシューティング / Title: Distorted Shooting
+・作成者：komon / Creator: komon
+・ゲームID：RG_komon_2026_01 / Game ID: RG_komon_2026_01
+・本利用条件または本利用条件への参照 / These terms or a reference to these terms
+
+改変版を公開する場合は、原作と誤認されないよう、改変したものであることを明示してください。
+When publishing a modified version, clearly state that it has been modified so that it is not mistaken for the original.
+
+5. 禁止事項 / Prohibited Actions
+
+以下の行為を禁止します。
+The following actions are prohibited:
+
+・本ソフトウェア自体を販売すること / Selling this software itself
+・本ソフトウェアを主たる商品として販売、貸与、有償配布すること / Selling, renting, or distributing this software as the main paid product
+・本ソフトウェアの作者または関係サークルを偽ること / Falsely claiming to be the author or affiliated circle
+・本ソフトウェアの公式版、認定版、承認版であるかのように誤認させること / Misrepresenting a version as official, certified, or approved
+・本ソフトウェアが医療機器である、または医療的有効性が保証されているかのように表示すること / Presenting this software as a medical device or as having guaranteed medical effectiveness
+・法令または公序良俗に反する目的で利用すること / Using this software in violation of laws, regulations, public order, or morals
+・第三者の権利を侵害する形で利用すること / Using this software in a way that infringes third-party rights
+・本利用条件および免責事項を削除または改ざんし、利用者に誤解を与える形で再配布すること / Redistributing it in a misleading form by deleting or altering these terms and disclaimers
+
+なお、本ソフトウェアを教育、研究、医療、介護、研修、展示等の活動の一部として使用することは、当該活動が有償である場合でも、本ソフトウェア自体を販売する行為には含まれません。
+ただし、その場合も安全管理、説明責任、運用責任は利用者または導入施設が負うものとします。
+
+Using this software as part of education, research, medical care, care services, training, exhibitions, or similar activities is not considered selling the software itself, even when those activities are paid.
+However, safety management, explanation, and operational responsibility remain with the user or introducing facility.
+
+6. 医療・リハビリテーション・運動指導等での利用 / Use in Medical, Rehabilitation, and Exercise Instruction Settings
+
+本ソフトウェアを、リハビリテーション、運動指導、訓練、評価、研究、教育、臨床現場での補助、介護予防、健康増進活動等に利用する場合、利用者および導入施設は、対象者の状態、環境、転倒リスク、疲労、疼痛、認知機能、視覚・聴覚機能、機器の安全性等を十分に確認してください。
+
+When using this software for rehabilitation, exercise instruction, training, assessment, research, education, clinical assistance, care prevention, health promotion, or similar activities, users and introducing facilities must sufficiently confirm the participant’s condition, environment, fall risk, fatigue, pain, cognitive function, visual and auditory function, device safety, and other relevant factors.
+
+本ソフトウェアの利用は、専門職による判断、施設の安全基準、倫理審査、説明と同意、個人情報保護、その他必要な法令・規則・ガイドラインに従って実施してください。
+Use of this software must follow professional judgment, facility safety standards, ethics review, informed consent, personal information protection, and all applicable laws, rules, and guidelines.
+
+本ソフトウェアは、医療的判断、治療方針の決定、効果判定、安全性判断を代替するものではありません。
+This software does not replace medical judgment, treatment planning, outcome evaluation, or safety judgment.
+
+7. データの取り扱い / Data Handling
+
+本ソフトウェアには、プレイ結果やCSV出力機能が含まれる場合があります。
+出力されたデータの保存、管理、分析、共有、公開、研究利用、個人情報保護、匿名化、同意取得等は、利用者および導入施設の責任で行ってください。
+
+This software may include play results and CSV export functions.
+Storage, management, analysis, sharing, publication, research use, personal information protection, anonymization, consent acquisition, and other handling of exported data must be conducted under the responsibility of the user and introducing facility.
+
+作者および関係者は、利用者が取得、保存、共有、公開したデータについて責任を負いません。
+The author and related parties assume no responsibility for data acquired, stored, shared, or published by users.
+
+8. 免責事項 / Disclaimer
+
+本ソフトウェアを用いたリハビリテーション、運動指導、訓練、評価、臨床判断、安全管理、研究、教育、展示、その他一切の活動は、利用者および導入施設の責任において実施してください。
+Any rehabilitation, exercise instruction, training, assessment, clinical judgment, safety management, research, education, exhibition, or other activity using this software must be conducted under the responsibility of the user and the introducing facility.
+
+作者および関係者は、本ソフトウェアの利用または利用不能により生じた、転倒、負傷、疼痛、疲労、体調不良、症状悪化、心理的不快感、機器故障、データ消失、業務上の損害、研究上の損害、教育上の損害、第三者との権利問題、その他一切の直接的、間接的、偶発的、特別、派生的、結果的損害について、いかなる責任も負いません。
+The author and related parties assume no responsibility for falls, injuries, pain, fatigue, health problems, symptom worsening, psychological discomfort, device failures, data loss, business losses, research losses, educational losses, rights issues with third parties, or any other direct, indirect, incidental, special, derivative, or consequential damages arising from the use or inability to use this software.
+
+本ソフトウェアは現状有姿（AS IS）で提供されます。
+作者および関係者は、本ソフトウェアについて、動作保証、継続的提供保証、不具合修正保証、特定目的適合性保証、正確性保証、安全性保証、医療的有効性保証、研究成果保証、教育効果保証、第三者権利非侵害保証を含む、明示または黙示のいかなる保証も行いません。
+This software is provided “AS IS.” The author and related parties provide no express or implied warranties, including warranties of operation, continuous availability, bug fixing, fitness for a particular purpose, accuracy, safety, medical effectiveness, research outcomes, educational effectiveness, or non-infringement of third-party rights.
+
+9. 公開の変更・停止 / Changes or Discontinuation
+
+作者は、事前の通知なく、本ソフトウェアの内容を変更、修正、更新、公開停止、削除することがあります。
+作者は、本ソフトウェアの継続的な提供、保守、サポート、更新を行う義務を負いません。
+The author may change, modify, update, discontinue, or delete this software without prior notice. The author has no obligation to continuously provide, maintain, support, or update this software.
+
+10. 利用条件の変更 / Changes to These Terms
+
+作者は、必要に応じて本利用条件を変更することがあります。
+変更後の利用条件は、公開された時点から適用されます。
+The author may change these terms as necessary. Revised terms apply from the time they are published.
+
+11. 準拠 / Language
+
+本利用条件は、日本語を正文とします。
+本利用条件の解釈に疑義が生じた場合は、日本語版の内容を優先します。
+The Japanese version is the original and controlling version of these terms. If any doubt arises in interpretation, the Japanese version prevails.
+
+以上 / End
